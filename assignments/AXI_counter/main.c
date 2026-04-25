@@ -3,7 +3,7 @@
 #include "xil_printf.h"
 #include "xuartlite_l.h"
 
-#define COUNTER_BASEADDR XPAR_COUNTER_0_BASEADDR
+#define COUNTER_BASEADDR XPAR_AXI_COUNTER_0_BASEADDR
 #define UART_BASEADDR    XPAR_AXI_UARTLITE_0_BASEADDR
 
 #define COUNTER_CONTROL_OFFSET 0x00U
@@ -16,6 +16,7 @@ int main()
 {
     u8 ch;
     u32 count;
+    u32 run_state = 0U;
 
     xil_printf("UART Counter Control\r\n");
     xil_printf("r: run, s: stop, c: clear\r\n");
@@ -27,13 +28,18 @@ int main()
             ch = XUartLite_RecvByte(UART_BASEADDR);
 
             if (ch == 'r') {
-                Xil_Out32(COUNTER_BASEADDR + COUNTER_CONTROL_OFFSET, COUNTER_CTRL_RUN);
+                run_state = COUNTER_CTRL_RUN;
+                Xil_Out32(COUNTER_BASEADDR + COUNTER_CONTROL_OFFSET, run_state);
                 xil_printf("RUN\r\n");
             } else if (ch == 's') {
-                Xil_Out32(COUNTER_BASEADDR + COUNTER_CONTROL_OFFSET, 0);
+                run_state = 0U;
+                Xil_Out32(COUNTER_BASEADDR + COUNTER_CONTROL_OFFSET, run_state);
                 xil_printf("STOP\r\n");
             } else if (ch == 'c') {
-                Xil_Out32(COUNTER_BASEADDR + COUNTER_CONTROL_OFFSET, COUNTER_CTRL_CLEAR);
+                Xil_Out32(COUNTER_BASEADDR + COUNTER_CONTROL_OFFSET,
+                          run_state | COUNTER_CTRL_CLEAR);
+                Xil_Out32(COUNTER_BASEADDR + COUNTER_CONTROL_OFFSET,
+                          run_state);
                 xil_printf("CLEAR\r\n");
             }
 
@@ -44,3 +50,4 @@ int main()
 
     return 0;
 }
+
